@@ -1,9 +1,11 @@
 use wgpu;
+use wgpu::util::DeviceExt;
 use winit::{
     event::*,
     window::*,
 };
 use anyhow::{Context, Result};
+use bytemuck;
 
 pub struct State {
     surface: wgpu::Surface,
@@ -13,7 +15,22 @@ pub struct State {
     swap_chain: wgpu::SwapChain,
     pub size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
+    vertex_buffer: wgpu::Buffer,
 }
+
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];
 
 impl State {
     pub async fn new(window: &Window) -> Result<Self> {
@@ -42,10 +59,13 @@ impl State {
             present_mode: wgpu::PresentMode::Fifo,
         };
 
-        let vs_module = device.create_shader_module(wgpu::include_spirv!("shader.vert.spv"));
-        let fs_module = device.create_shader_module(wgpu::include_spirv!("shader.frag.spv"));
+        let vs_module = device.create_shader_module(
+            wgpu::include_spirv!("shader.vert.spv"));
+        let fs_module = device.create_shader_module(
+            wgpu::include_spirv!("shader.frag.spv"));
 
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let render_pipeline_layout = device.create_pipeline_layout(
+            &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
             bind_group_layouts: &[],
             push_constant_ranges: &[],
@@ -63,7 +83,7 @@ impl State {
                     wgpu::ProgrammableStageDescriptor {
                         module: &fs_module,
                         entry_point: "main",
-                }),
+                    }),
                 rasterization_state: Some(
                     wgpu::RasterizationStateDescriptor {
                         front_face: wgpu::FrontFace::Ccw,
@@ -86,14 +106,28 @@ impl State {
                 depth_stencil_state: None,
                 vertex_state: wgpu::VertexStateDescriptor {
                     index_format: wgpu::IndexFormat::Uint16,
-                    vertex_buffers: &[],
+                    vertex_buffers: &[
+                        wgpu::VertexBufferDescriptor {
+                            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+                            step_mode: wgpu::InputStepMode::Vertex,
+                            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float3],
+                        }
+                    ],
                 },
                 sample_count: 1,
                 sample_mask: !0,
                 alpha_to_coverage_enabled: false,
-            });
-
+            }
+        );
+        
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        let vertex_buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Vertex Buffer"),
+                contents: bytemuck::cast_slice(VERTICES),
+                usage: wgpu::BufferUsage::VERTEX,
+            }
+        );
         Ok(Self {
             surface,
             device,
@@ -102,6 +136,7 @@ impl State {
             swap_chain,
             size,
             render_pipeline,
+            vertex_buffer,
         })
     }
 
@@ -145,6 +180,7 @@ impl State {
                 depth_stencil_attachment: None,
             });
         render_pass.set_pipeline(&self.render_pipeline);
+        render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.draw(0..3, 0..1);
         drop(render_pass);
         self.queue.submit(std::iter::once(encoder.finish()));
