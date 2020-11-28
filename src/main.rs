@@ -1,4 +1,5 @@
 pub mod state;
+pub mod camera;
 
 use winit::{
     event::*,
