@@ -3,6 +3,8 @@ use wgpu;
 use tobj;
 use anyhow::Result;
 use wgpu::util::DeviceExt;
+use mint::Vector3;
+use crevice::std140::{AsStd140, Std140};
 
 pub struct Material {
     pub diffuse_texture: Texture,
@@ -15,20 +17,17 @@ impl Material {
     pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, material: &tobj::Material) -> Result<Self> {
         let path = format!("data/{}", material.diffuse_texture);
         let diffuse_texture = Texture::new(device, queue, &path,
-                                          Some("diffuse_texture"))?;
+                                           Some("diffuse_texture"))?;
         let name = material.name.as_str().to_string();
         let material_raw = MaterialRaw {
-            ambient: material.ambient,
-            _padding_0: 0,
-            diffuse: material.diffuse,
-            _padding_1: 0,
-            specular: material.specular,
-            _padding_2: 0,
+            ambient: Vector3::from_slice(&material.ambient),
+            diffuse: Vector3::from_slice(&material.diffuse),
+            specular: Vector3::from_slice(&material.specular),
             shininess: material.shininess,
         };
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some(format!("{} uniform buffer", name).as_str()),
-            contents: bytemuck::cast_slice(&[material_raw]),
+            contents: material_raw.as_std140().as_bytes(),
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
         let bind_group_layout = device.create_bind_group_layout(
@@ -64,14 +63,10 @@ impl Material {
     }
 }
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[derive(AsStd140)]
 struct MaterialRaw {
-    ambient: [f32; 3],
-    _padding_0: u32,
-    diffuse: [f32; 3],
-    _padding_1: u32,
-    specular: [f32; 3],
-    _padding_2: u32,
+    ambient: Vector3<f32>,
+    diffuse: Vector3<f32>,
+    specular: Vector3<f32>,
     shininess: f32,
 }
