@@ -1,5 +1,9 @@
 pub mod state;
 pub mod camera;
+pub mod texture;
+pub mod vertex;
+pub mod mesh;
+pub mod material;
 
 use winit::{
     event::*,
