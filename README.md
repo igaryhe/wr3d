@@ -19,7 +19,7 @@ The following is a list of packages we used in the project:
 - `shaderc` for shader compilation
 
 ## Setup
-The project uses [shaderc](https://github.com/google/shaderc) as an external tool to compile `glsl` shader into `SPIR-V`. To successfully build the project, users are required to have `shaderc` binary files, and set the environment variable `SHADERC_LIB_DIR` to the `lib` directory in the `shaderc` binary package directory.
+The project uses [shaderc](https://github.com/google/shaderc) as an external tool to compile `glsl` shader into `SPIR-V`. To successfully build the project, users are required to have `shaderc` binary files, and set the environment variable `SHADERC_LIB_DIR` to the `lib` directory in the `shaderc` binary package directory. After that, users could esaily execute `cargo run --release` to run the project.
 
 ## Introduction
 This project uses `wgpu` as the graphics API. `wgpu` is a Rust implementation of the `WebGPU` standard. One advantage of `wgpu` is that it leverages all kinds of native graphics API as its backend. For example, `DirectX 12` on Windows, `Metal` on macOS, and `Vulkan` on Linux.
