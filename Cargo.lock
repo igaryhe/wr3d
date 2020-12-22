@@ -453,6 +453,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "crevice"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f3073c84f5b9de0c30159d9e3f7697a4cb507dadfb6440bcf37d2cdb8a091a5"
+dependencies = [
+ "bytemuck",
+ "crevice-derive",
+ "mint",
+]
+
+[[package]]
+name = "crevice-derive"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de5a7d346550c108d1a28f9bb19c59df3d1ed4a56eabcef6c892023325f09834"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -925,6 +947,7 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5a647a31acdc1d622b47ad052dd3cdf435046e09183a00aef0368943a70eee3"
 dependencies = [
+ "mint",
  "version_check",
 ]
 
@@ -1176,6 +1199,12 @@ dependencies = [
  "adler",
  "autocfg",
 ]
+
+[[package]]
+name = "mint"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "519df8d6856dcd4b40519947737b408f81be051fc032590659cae5d77d664185"
 
 [[package]]
 name = "mio"
@@ -2195,9 +2224,11 @@ dependencies = [
  "anyhow",
  "async-std",
  "bytemuck",
+ "crevice",
  "glam",
  "glob",
  "image",
+ "mint",
  "shaderc",
  "tobj",
  "wgpu",
